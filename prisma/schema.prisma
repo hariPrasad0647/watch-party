@@ -27,6 +27,8 @@ model User {
   updatedAt    DateTime @updatedAt
 
   refreshSessions RefreshSession[]
+  rooms           Room[]
+  participants    Participant[]
 }
 
 model RefreshSession {
@@ -43,4 +45,43 @@ model RefreshSession {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+enum RoomStatus {
+  ACTIVE
+  ENDED
+}
+
+model Room {
+  id              String     @id @default(uuid())
+  name            String
+  isPrivate       Boolean    @default(false)
+  maxParticipants Int        @default(50)
+  status                 RoomStatus @default(ACTIVE)
+  activeParticipantCount Int        @default(0)
+
+  hostId          String
+  host            User       @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  endedAt         DateTime?
+
+  participants    Participant[]
+
+  @@index([hostId])
+}
+
+model Participant {
+  id        String    @id @default(uuid())
+  roomId    String
+  userId    String
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+
+  room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([roomId, leftAt]) // Efficiently query active participants
 }

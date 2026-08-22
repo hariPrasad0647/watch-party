@@ -5,5 +5,10 @@ export {
   AuthInvalidTokenError,
   AuthSessionRevokedError,
   AuthEmailAlreadyExistsError,
-  AuthAccountInactiveError
+  AuthAccountInactiveError,
+  RoomNotFoundError,
+  RoomForbiddenError,
+  RoomAlreadyEndedError,
+  RoomInvalidStateError,
+  ParticipantNotFoundError
 } from './AppError.js';

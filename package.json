@@ -26,6 +26,7 @@
     "@fastify/helmet": "^11.1.1",
     "@fastify/rate-limit": "^9.1.0",
     "@prisma/client": "^5.10.2",
+    "@socket.io/redis-adapter": "^8.3.0",
     "argon2": "^0.45.1",
     "bullmq": "^5.4.1",
     "fastify": "^4.26.1",

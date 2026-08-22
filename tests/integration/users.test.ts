@@ -20,7 +20,7 @@ describe('Users Integration Tests', () => {
   beforeAll(async () => {
     app = await buildApp();
     await app.ready();
-    
+
     // Generate a valid token for testing protected routes
     validToken = TokenService.generateAccessToken(userId, 'test-jti');
   });
@@ -47,7 +47,7 @@ describe('Users Integration Tests', () => {
         bio: null,
         createdAt: new Date()
       };
-      
+
       (UserRepository.findCurrentUserById as any).mockResolvedValue(mockProfile);
 
       const response = await app.inject({
@@ -134,7 +134,7 @@ describe('Users Integration Tests', () => {
         createdAt: new Date()
       };
       (UserRepository.findCurrentUserById as any).mockResolvedValue(existingUser);
-      
+
       const updatedUser = { ...existingUser, displayName: 'New Name' };
       (UserRepository.updateProfile as any).mockResolvedValue(updatedUser);
 
@@ -149,7 +149,9 @@ describe('Users Integration Tests', () => {
       const body = JSON.parse(response.payload);
       expect(body.success).toBe(true);
       expect(body.data.user.displayName).toBe('New Name');
-      expect(UserRepository.updateProfile).toHaveBeenCalledWith(userId, { displayName: 'New Name' });
+      expect(UserRepository.updateProfile).toHaveBeenCalledWith(userId, {
+        displayName: 'New Name'
+      });
     });
 
     it('should handle null values correctly', async () => {
@@ -162,7 +164,7 @@ describe('Users Integration Tests', () => {
         createdAt: new Date()
       };
       (UserRepository.findCurrentUserById as any).mockResolvedValue(existingUser);
-      
+
       const updatedUser = { ...existingUser, bio: null };
       (UserRepository.updateProfile as any).mockResolvedValue(updatedUser);
 

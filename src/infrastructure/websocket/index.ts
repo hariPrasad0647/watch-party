@@ -3,6 +3,9 @@ import { Server as SocketIOServer } from 'socket.io';
 import { logger } from '../logger/index.js';
 import { env } from '../../config/env.js';
 import { TokenService } from '../../modules/auth/token.service.js';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { redis } from '../redis/index.js';
+import { registerSocketHandlers } from '../../realtime/socket.handlers.js';
 
 export let io: SocketIOServer;
 
@@ -13,6 +16,9 @@ export function initializeWebSocket(httpServer: HttpServer) {
       methods: ['GET', 'POST']
     }
   });
+
+  // Attach redis adapter
+  io.adapter(createAdapter(redis.duplicate(), redis.duplicate()));
 
   // Authentication middleware
   io.use((socket, next) => {
@@ -32,6 +38,9 @@ export function initializeWebSocket(httpServer: HttpServer) {
 
   io.on('connection', (socket) => {
     logger.debug({ socketId: socket.id }, 'Socket connected');
+
+    // Register modular handlers
+    registerSocketHandlers(socket);
 
     socket.on('system:ping', () => {
       socket.emit('system:pong', { timestamp: new Date().toISOString() });

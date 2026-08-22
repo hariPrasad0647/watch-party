@@ -121,7 +121,10 @@ export class AuthService {
 
       // 6. Enforce Account active status for refresh
       if (!session.user.isActive) {
-        logger.warn({ userId: session.userId }, 'Security Event: Inactive user attempted to refresh token');
+        logger.warn(
+          { userId: session.userId },
+          'Security Event: Inactive user attempted to refresh token'
+        );
         // Revoke all sessions since the account is inactive
         await tx.refreshSession.updateMany({
           where: { userId: session.userId, revokedAt: null },

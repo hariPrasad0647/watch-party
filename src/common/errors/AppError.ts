@@ -75,3 +75,33 @@ export class AuthEmailAlreadyExistsError extends AppError {
     super(message, 409, 'AUTH_EMAIL_ALREADY_EXISTS');
   }
 }
+
+export class RoomNotFoundError extends AppError {
+  constructor(message: string = 'Room not found') {
+    super(message, 404, 'ROOM_NOT_FOUND');
+  }
+}
+
+export class RoomForbiddenError extends AppError {
+  constructor(message: string = 'Not authorized to access this room') {
+    super(message, 403, 'ROOM_FORBIDDEN');
+  }
+}
+
+export class RoomAlreadyEndedError extends AppError {
+  constructor(message: string = 'Room is already ended') {
+    super(message, 400, 'ROOM_ALREADY_ENDED');
+  }
+}
+
+export class RoomInvalidStateError extends AppError {
+  constructor(message: string = 'Invalid room state transition') {
+    super(message, 400, 'ROOM_INVALID_STATE');
+  }
+}
+
+export class ParticipantNotFoundError extends AppError {
+  constructor(message: string = 'Participant not found in this room') {
+    super(message, 404, 'PARTICIPANT_NOT_FOUND');
+  }
+}

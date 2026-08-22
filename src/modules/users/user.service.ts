@@ -10,11 +10,11 @@ export class UserService {
    */
   static async getCurrentUserProfile(userId: string) {
     const user = await UserRepository.findCurrentUserById(userId);
-    
+
     if (!user) {
       throw new NotFoundError('User not found');
     }
-    
+
     return user;
   }
 
@@ -42,9 +42,9 @@ export class UserService {
     }
 
     const updatedUser = await UserRepository.updateProfile(userId, updateData);
-    
+
     logger.info({ userId }, 'profile_updated');
-    
+
     return updatedUser;
   }
 }

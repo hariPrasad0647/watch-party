@@ -5,10 +5,13 @@ import rateLimit from '@fastify/rate-limit';
 import { env } from './config/env.js';
 import { logger } from './infrastructure/logger/index.js';
 import { errorHandler } from './common/middleware/errorHandler.js';
-import healthRoutes from './health/routes.js';
 import fastifyCookie from '@fastify/cookie';
 import { authRoutes } from './modules/auth/index.js';
 import { userRoutes } from './modules/users/index.js';
+import { roomRoutes } from './modules/rooms/index.js';
+import { participantRoutes } from './modules/participants/participant.routes.js';
+import { playbackRoutes } from './modules/playback/playback.routes.js';
+import healthRoutes from './health/routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -58,7 +61,10 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Register core routes
   app.register(authRoutes, { prefix: '/api/v1/auth' });
   app.register(userRoutes, { prefix: '/api/v1/users' });
-  app.register(healthRoutes, { prefix: '/health' });
+  app.register(roomRoutes, { prefix: '/api/v1/rooms' });
+  app.register(participantRoutes, { prefix: '/api/v1/rooms' });
+  app.register(playbackRoutes, { prefix: '/api/v1/rooms' });
+  app.register(healthRoutes, { prefix: '/api/v1/health' });
 
   return app;
 }

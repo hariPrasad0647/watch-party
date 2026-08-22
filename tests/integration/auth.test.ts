@@ -118,19 +118,20 @@ describe('Authentication Integration Tests', () => {
     const tokenHash = crypto.createHash('sha256').update(rawRefresh).digest('hex');
 
     (AuthRepository.getPrisma as any).mockReturnValue({
-      $transaction: async (cb: any) => cb({
-        refreshSession: {
-          findUnique: vi.fn().mockResolvedValue({
-            id: 'session-id',
-            userId: 'inactive-id',
-            jti,
-            tokenHash,
-            revokedAt: null,
-            user: { isActive: false }
-          }),
-          updateMany: vi.fn()
-        }
-      })
+      $transaction: async (cb: any) =>
+        cb({
+          refreshSession: {
+            findUnique: vi.fn().mockResolvedValue({
+              id: 'session-id',
+              userId: 'inactive-id',
+              jti,
+              tokenHash,
+              revokedAt: null,
+              user: { isActive: false }
+            }),
+            updateMany: vi.fn()
+          }
+        })
     });
 
     const response = await app.inject({

@@ -22,7 +22,7 @@ export class UserController {
    */
   static async updateMe(request: FastifyRequest, reply: FastifyReply) {
     const userId = request.user!.id;
-    
+
     const parseResult = updateProfileSchema.safeParse(request.body);
     if (!parseResult.success) {
       throw new ValidationError(parseResult.error.errors[0]?.message || 'Validation error');
