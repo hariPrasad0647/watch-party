@@ -29,6 +29,8 @@ model User {
   refreshSessions RefreshSession[]
   rooms           Room[]
   participants    Participant[]
+  messages        ChatMessage[]
+  invitations     Invitation[]
 }
 
 model RefreshSession {
@@ -68,6 +70,9 @@ model Room {
   endedAt         DateTime?
 
   participants    Participant[]
+  messages        ChatMessage[]
+  invitations     Invitation[]
+  media           RoomMedia?
 
   @@index([hostId])
 }
@@ -84,4 +89,65 @@ model Participant {
 
   @@unique([roomId, userId])
   @@index([roomId, leftAt]) // Efficiently query active participants
+}
+
+model ChatMessage {
+  id              String   @id @default(uuid())
+  roomId          String
+  senderId        String
+  content         String   @db.Text
+  clientMessageId String?
+  createdAt       DateTime @default(now())
+
+  room            Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender          User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, clientMessageId])
+  @@index([roomId, createdAt(sort: Desc)])
+}
+
+model Invitation {
+  id          String    @id @default(uuid())
+  roomId      String
+  createdById String
+  tokenHash   String    @unique
+  expiresAt   DateTime?
+  maxUses     Int?
+  useCount    Int       @default(0)
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  room      Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdBy User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt])
+}
+
+model OutboxEvent {
+  id            String    @id @default(uuid())
+  type          String
+  payload       Json
+  createdAt     DateTime  @default(now())
+  processedAt   DateTime?
+  attempts      Int       @default(0)
+  lastAttemptAt DateTime?
+  lastError     String?   @db.Text
+  
+  @@index([processedAt, createdAt])
+}
+
+enum MediaProvider {
+  YOUTUBE
+  DIRECT
+}
+
+model RoomMedia {
+  id        String        @id @default(uuid())
+  roomId    String        @unique
+  provider  MediaProvider
+  source    String        @db.Text
+  title     String?       @db.Text
+  updatedAt DateTime      @updatedAt
+
+  room      Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }

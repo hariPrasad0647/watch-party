@@ -11,6 +11,9 @@ import { userRoutes } from './modules/users/index.js';
 import { roomRoutes } from './modules/rooms/index.js';
 import { participantRoutes } from './modules/participants/participant.routes.js';
 import { playbackRoutes } from './modules/playback/playback.routes.js';
+import { chatRoutes } from './modules/chat/chat.routes.js';
+import { roomInvitationRoutes, globalInvitationRoutes } from './modules/invitations/invitation.routes.js';
+import { mediaRoutes } from './modules/media/media.routes.js';
 import healthRoutes from './health/routes.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -64,6 +67,11 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.register(roomRoutes, { prefix: '/api/v1/rooms' });
   app.register(participantRoutes, { prefix: '/api/v1/rooms' });
   app.register(playbackRoutes, { prefix: '/api/v1/rooms' });
+  app.register(chatRoutes, { prefix: '/api/v1/rooms' });
+  app.register(roomInvitationRoutes, { prefix: '/api/v1/rooms' });
+  app.register(globalInvitationRoutes, { prefix: '/api/v1/invitations' });
+  app.register(mediaRoutes, { prefix: '/api/v1/rooms' });
+
   app.register(healthRoutes, { prefix: '/api/v1/health' });
 
   return app;

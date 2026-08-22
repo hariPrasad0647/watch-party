@@ -112,7 +112,7 @@ export class RoomService {
       const endedRoom = await RoomRepository.endRoomAtomic(roomId);
       
       // 1. Delete playback state from Redis
-      await PlaybackRepository.deleteState(roomId).catch(err => {
+      await PlaybackRepository.deleteState(roomId).catch(_err => {
         // Ignore deletion errors, the room status is ENDED so it's safely blocked anyway
       });
 
@@ -123,9 +123,9 @@ export class RoomService {
       await RealtimeService.disconnectAllFromRoom(roomId);
       
       return endedRoom;
-    } catch (error: any) {
+    } catch (_err: any) {
       // Prisma P2025: Record to update not found
-      if (error.code === 'P2025') {
+      if (_err.code === 'P2025') {
         // Since we already verified it exists above, it must have already been ended concurrently
         // Let's double check to be safe
         const currentRoom = await RoomRepository.findById(roomId);
@@ -136,7 +136,7 @@ export class RoomService {
           throw new RoomAlreadyEndedError();
         }
       }
-      throw error;
+      throw _err;
     }
   }
 }

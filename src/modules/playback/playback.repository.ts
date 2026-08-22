@@ -9,18 +9,19 @@ export class PlaybackRepository {
   static async applyCommand(
     roomId: string,
     command: 'PLAY' | 'PAUSE' | 'SEEK' | 'RATE',
-    payload: string = ''
+    payload: string = '',
+    expectedMediaId: string = ''
   ): Promise<PlaybackState> {
     const key = this.getKey(roomId);
     const nowMs = Date.now().toString();
-    const resultJson = await redis.applyPlaybackCommand(key, command, nowMs, payload, roomId);
+    const resultJson = await redis.applyPlaybackCommand(key, command, nowMs, payload, roomId, expectedMediaId);
     return JSON.parse(resultJson) as PlaybackState;
   }
 
   static async getStatus(roomId: string): Promise<PlaybackState> {
     const key = this.getKey(roomId);
     const nowMs = Date.now().toString();
-    const resultJson = await redis.applyPlaybackCommand(key, 'STATUS', nowMs, '', roomId);
+    const resultJson = await redis.applyPlaybackCommand(key, 'STATUS', nowMs, '', roomId, '');
     return JSON.parse(resultJson) as PlaybackState;
   }
 

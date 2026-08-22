@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyRequest, FastifyReply } from 'fastify';
 import { ParticipantService } from './participant.service.js';
 import { roomIdParamSchema } from './participant.schema.js';
 

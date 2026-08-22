@@ -1,5 +1,5 @@
 import { Redis } from 'ioredis';
-import { redis } from './index.js';
+
 
 const applyPlaybackCommandLua = `
 local key = KEYS[1]
@@ -7,6 +7,7 @@ local cmd = ARGV[1]
 local nowMs = tonumber(ARGV[2])
 local argPayload = ARGV[3]
 local roomIdArg = ARGV[4]
+local expectedMediaIdArg = ARGV[5]
 
 local stateJson = redis.call('GET', key)
 local state
@@ -24,6 +25,14 @@ if not stateJson then
 else
   state = cjson.decode(stateJson)
 end
+
+-- Validate expectedMediaId for playback commands
+if cmd == 'PLAY' or cmd == 'PAUSE' or cmd == 'SEEK' or cmd == 'RATE' then
+  if state.mediaId ~= cjson.null and expectedMediaIdArg ~= '' and expectedMediaIdArg ~= state.mediaId then
+    return cjson.encode({ error = 'STALE_COMMAND' })
+  end
+end
+
 
 -- Calculate current position
 local currentPositionMs = state.basePositionMs
@@ -59,6 +68,12 @@ elseif cmd == 'STATUS' then
     redis.call('SET', key, newStateJson)
   end
   return newStateJson
+elseif cmd == 'SET_MEDIA' then
+  state.mediaId = argPayload
+  state.status = 'PAUSED'
+  state.basePositionMs = 0
+  state.playbackRate = 1
+  state.serverTimestamp = nowMs
 else
   return cjson.encode({ error = 'UNKNOWN_COMMAND' })
 end
@@ -82,10 +97,11 @@ declare module 'ioredis' {
   interface Redis {
     applyPlaybackCommand(
       key: string,
-      cmd: 'PLAY' | 'PAUSE' | 'SEEK' | 'RATE' | 'STATUS',
+      cmd: 'PLAY' | 'PAUSE' | 'SEEK' | 'RATE' | 'STATUS' | 'SET_MEDIA',
       nowMs: string,
       payload: string,
-      roomId: string
+      roomId: string,
+      expectedMediaId: string
     ): Promise<string>;
   }
 }

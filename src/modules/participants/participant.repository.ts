@@ -1,4 +1,4 @@
-import { Prisma, Participant } from '@prisma/client';
+import { Participant, Prisma } from '@prisma/client';
 import { prisma } from '../../infrastructure/database/index.js';
 import { RoomNotFoundError, RoomInvalidStateError } from '../../common/errors/index.js';
 
@@ -13,7 +13,14 @@ export class ParticipantRepository {
    * If capacity is full, returns null.
    * Otherwise increments room capacity and creates/reactivates participant.
    */
-  static async atomicJoin(roomId: string, userId: string): Promise<{ participant: Participant; isNew: boolean } | null> {
+  static async atomicJoin(
+    roomId: string, 
+    userId: string,
+    hooks?: {
+      beforeRoomLock?: (tx: Prisma.TransactionClient, isExisting: boolean) => Promise<void>;
+      afterCapacityCheck?: (tx: Prisma.TransactionClient, isExisting: boolean) => Promise<void>;
+    }
+  ): Promise<{ participant: Participant; isNew: boolean } | null> {
     // We use a serialized transaction for capacity enforcement
     return prisma.$transaction(async (tx) => {
       // 1. Check existing participant state
@@ -24,6 +31,10 @@ export class ParticipantRepository {
       if (existing && existing.leftAt === null) {
         // Already an active participant, idempotent success
         return { participant: existing, isNew: false };
+      }
+
+      if (hooks?.beforeRoomLock) {
+        await hooks.beforeRoomLock(tx as Prisma.TransactionClient, !!existing);
       }
 
       // 2. Lock the room row to serialize concurrent joins
@@ -48,6 +59,10 @@ export class ParticipantRepository {
       if (room.activeParticipantCount >= room.maxParticipants) {
         // Room is full
         return null;
+      }
+
+      if (hooks?.afterCapacityCheck) {
+        await hooks.afterCapacityCheck(tx as Prisma.TransactionClient, !!existing);
       }
 
       // 3. Increment the counter

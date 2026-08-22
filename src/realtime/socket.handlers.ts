@@ -5,6 +5,7 @@ import { RoomRepository } from '../modules/rooms/room.repository.js';
 import { RealtimeService } from './realtime.service.js';
 import { registerPlaybackHandlers } from './playback.handlers.js';
 import { PlaybackService } from '../modules/playback/playback.service.js';
+import { registerChatHandlers } from './chat.handlers.js';
 
 export function registerSocketHandlers(socket: Socket) {
   const userId = socket.data.user?.id;
@@ -55,6 +56,7 @@ export function registerSocketHandlers(socket: Socket) {
   });
 
   registerPlaybackHandlers(socket);
+  registerChatHandlers(socket);
 
   // Handle automatic socket disconnects (network drops, tab close)
   socket.on('disconnecting', async () => {

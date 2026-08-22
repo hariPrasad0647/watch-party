@@ -1,4 +1,4 @@
-import { PrismaClient, Room, Prisma } from '@prisma/client';
+import { Room, Prisma } from '@prisma/client';
 import { getPaginationOptions } from '../../common/utils/pagination.js';
 import { prisma } from '../../infrastructure/database/index.js';
 

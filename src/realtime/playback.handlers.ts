@@ -33,6 +33,7 @@ export function registerPlaybackHandlers(socket: Socket) {
 
   const handleCommand = async (
     roomId: string,
+    expectedMediaId: string,
     command: 'PLAY' | 'PAUSE' | 'SEEK' | 'RATE',
     payload?: any,
     callback?: (response: any) => void
@@ -49,7 +50,7 @@ export function registerPlaybackHandlers(socket: Socket) {
     }
 
     try {
-      const state = await PlaybackService.executeCommand(roomId, userId, command, payload);
+      const state = await PlaybackService.executeCommand(roomId, userId, command, payload, expectedMediaId);
       
       // Send acknowledgement first
       if (typeof callback === 'function') {
@@ -57,7 +58,7 @@ export function registerPlaybackHandlers(socket: Socket) {
       }
 
       // Broadcast authoritative state to the room
-      RealtimeService.emitToRoom(roomId, 'playback:state', state);
+      RealtimeService.broadcastToRoom(roomId, 'playback:state', state);
 
     } catch (err) {
       if (typeof callback === 'function') {
@@ -66,18 +67,18 @@ export function registerPlaybackHandlers(socket: Socket) {
     }
   };
 
-  socket.on('playback:play', (roomId: string, callback?: (response: any) => void) => {
-    handleCommand(roomId, 'PLAY', undefined, callback);
+  socket.on('playback:play', (data: any, callback?: (response: any) => void) => {
+    handleCommand(data?.roomId, data?.expectedMediaId || '', 'PLAY', undefined, callback);
   });
 
-  socket.on('playback:pause', (roomId: string, callback?: (response: any) => void) => {
-    handleCommand(roomId, 'PAUSE', undefined, callback);
+  socket.on('playback:pause', (data: any, callback?: (response: any) => void) => {
+    handleCommand(data?.roomId, data?.expectedMediaId || '', 'PAUSE', undefined, callback);
   });
 
   socket.on('playback:seek', (data: any, callback?: (response: any) => void) => {
     try {
       const parsed = SeekCommandSchema.parse(data);
-      handleCommand(data.roomId, 'SEEK', parsed.positionMs, callback);
+      handleCommand(data.roomId, data.expectedMediaId || '', 'SEEK', parsed.positionMs, callback);
     } catch (err) {
       if (typeof callback === 'function') callback(handleCommandError(err));
     }
@@ -86,7 +87,7 @@ export function registerPlaybackHandlers(socket: Socket) {
   socket.on('playback:rate', (data: any, callback?: (response: any) => void) => {
     try {
       const parsed = RateCommandSchema.parse(data);
-      handleCommand(data.roomId, 'RATE', parsed.playbackRate, callback);
+      handleCommand(data.roomId, data.expectedMediaId || '', 'RATE', parsed.playbackRate, callback);
     } catch (err) {
       if (typeof callback === 'function') callback(handleCommandError(err));
     }

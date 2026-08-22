@@ -5,7 +5,7 @@ import { env } from '../../src/config/env.js';
 import { sign } from 'jsonwebtoken';
 import { PlaybackRepository } from '../../src/modules/playback/playback.repository.js';
 import { RoomRepository } from '../../src/modules/rooms/room.repository.js';
-import { ParticipantRepository } from '../../src/modules/participants/participant.repository.js';
+import { ParticipantService } from '../../src/modules/participants/participant.service.js';
 import { ParticipantNotFoundError } from '../../src/common/errors/index.js';
 
 vi.mock('../../src/modules/rooms/room.repository.js', () => ({
@@ -17,11 +17,9 @@ vi.mock('../../src/modules/rooms/room.repository.js', () => ({
   }
 }));
 
-vi.mock('../../src/modules/participants/participant.repository.js', () => ({
-  ParticipantRepository: {
-    findByRoomAndUser: vi.fn(),
-    create: vi.fn(),
-    delete: vi.fn()
+vi.mock('../../src/modules/participants/participant.service.js', () => ({
+  ParticipantService: {
+    isParticipant: vi.fn()
   }
 }));
 
@@ -71,7 +69,7 @@ describe('Playback Module (Module 5)', () => {
 
   it('should initialize default state on GET /playback for authorized participants', async () => {
     (RoomRepository.findById as any).mockResolvedValue({ id: roomId, hostId, status: 'ACTIVE' });
-    (ParticipantRepository.findByRoomAndUser as any).mockResolvedValue({ id: 'part-1', userId: guestId, roomId });
+    (ParticipantService.isParticipant as any).mockResolvedValue(true);
     
     // Mock redis.applyPlaybackCommand for PlaybackRepository.getState
     const { redis } = await import('../../src/infrastructure/redis/index.js');
@@ -97,7 +95,7 @@ describe('Playback Module (Module 5)', () => {
 
   it('should reject non-members from reading playback state', async () => {
     (RoomRepository.findById as any).mockResolvedValue({ id: roomId, hostId, status: 'ACTIVE' });
-    (ParticipantRepository.findByRoomAndUser as any).mockResolvedValue(null);
+    (ParticipantService.isParticipant as any).mockResolvedValue(false);
 
     const response = await app.inject({
       method: 'GET',

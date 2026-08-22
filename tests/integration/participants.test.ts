@@ -116,6 +116,13 @@ describe('Participants Module (Module 4)', () => {
     it('should reject non-host from joining a private room', async () => {
       const mockRoom = { id: '11111111-1111-1111-1111-111111111111', status: 'ACTIVE', isPrivate: true, hostId };
       (RoomRepository.findById as any).mockResolvedValue(mockRoom);
+      
+      const mockPrisma = {
+        participant: {
+          findUnique: vi.fn().mockResolvedValue(null)
+        }
+      };
+      (ParticipantRepository.getPrisma as any).mockReturnValue(mockPrisma);
 
       const response = await app.inject({
         method: 'POST',

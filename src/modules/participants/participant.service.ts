@@ -15,11 +15,15 @@ export class ParticipantService {
       throw new RoomNotFoundError();
     }
 
-    // Access policy: Private rooms only allow the host for now
     if (room.isPrivate && room.hostId !== userId) {
-      // In a future module, we will check if the user has an invitation.
-      // For now, only the host can join their private room.
-      throw new AppError('You are not authorized to join this private room', 403, 'ROOM_JOIN_FORBIDDEN');
+      // Allow if they have an existing participant record (permanent authorization)
+      const existingParticipant = await ParticipantRepository.getPrisma().participant.findUnique({
+        where: { roomId_userId: { roomId, userId } }
+      });
+      
+      if (!existingParticipant) {
+        throw new AppError('You are not authorized to join this private room. An invitation is required.', 403, 'ROOM_JOIN_FORBIDDEN');
+      }
     }
 
     const result = await ParticipantRepository.atomicJoin(roomId, userId);

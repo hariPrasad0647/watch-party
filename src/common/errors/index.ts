@@ -10,5 +10,10 @@ export {
   RoomForbiddenError,
   RoomAlreadyEndedError,
   RoomInvalidStateError,
-  ParticipantNotFoundError
+  ParticipantNotFoundError,
+  InvitationInvalidError,
+  InvitationExpiredError,
+  InvitationRevokedError,
+  InvitationExhaustedError,
+  InvitationForbiddenError
 } from './AppError.js';

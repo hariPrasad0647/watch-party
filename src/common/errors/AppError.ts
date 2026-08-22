@@ -105,3 +105,33 @@ export class ParticipantNotFoundError extends AppError {
     super(message, 404, 'PARTICIPANT_NOT_FOUND');
   }
 }
+
+export class InvitationInvalidError extends AppError {
+  constructor(message = 'Invalid invitation') {
+    super(message, 400, 'INVITATION_INVALID');
+  }
+}
+
+export class InvitationExpiredError extends AppError {
+  constructor(message = 'Invitation has expired') {
+    super(message, 400, 'INVITATION_EXPIRED');
+  }
+}
+
+export class InvitationRevokedError extends AppError {
+  constructor(message = 'Invitation has been revoked') {
+    super(message, 400, 'INVITATION_REVOKED');
+  }
+}
+
+export class InvitationExhaustedError extends AppError {
+  constructor(message = 'Invitation has reached maximum uses') {
+    super(message, 400, 'INVITATION_EXHAUSTED');
+  }
+}
+
+export class InvitationForbiddenError extends AppError {
+  constructor(message = 'Invitations can only be created for private rooms') {
+    super(message, 403, 'INVITATION_FORBIDDEN');
+  }
+}

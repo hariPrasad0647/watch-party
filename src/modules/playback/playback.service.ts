@@ -1,6 +1,6 @@
 import { AppError } from '../../common/errors/index.js';
 import { RoomRepository } from '../rooms/room.repository.js';
-import { ParticipantRepository } from '../participants/participant.repository.js';
+import { ParticipantService } from '../participants/participant.service.js';
 import { PlaybackRepository } from './playback.repository.js';
 import { PlaybackState } from './playback.schema.js';
 
@@ -13,7 +13,7 @@ export class PlaybackService {
     if (room.status !== 'ACTIVE') {
       throw new AppError('Room is not active', 400, 'ROOM_NOT_ACTIVE');
     }
-    const isMember = await ParticipantRepository.findByRoomAndUser(roomId, userId);
+    const isMember = await ParticipantService.isParticipant(roomId, userId);
     if (!isMember) {
       throw new AppError('You are not a participant of this room', 403, 'AUTHORIZATION_ERROR');
     }
@@ -30,7 +30,7 @@ export class PlaybackService {
     if (room.status !== 'ACTIVE') {
       throw new AppError('Room is not active', 400, 'ROOM_NOT_ACTIVE');
     }
-    const isMember = await ParticipantRepository.findByRoomAndUser(roomId, userId);
+    const isMember = await ParticipantService.isParticipant(roomId, userId);
     if (!isMember && room.hostId !== userId) {
       throw new AppError('You are not a participant of this room', 403, 'AUTHORIZATION_ERROR');
     }
@@ -49,12 +49,21 @@ export class PlaybackService {
     roomId: string,
     userId: string,
     command: 'PLAY' | 'PAUSE' | 'SEEK' | 'RATE',
-    payload?: number
+    payload?: number,
+    expectedMediaId?: string
   ): Promise<PlaybackState> {
     await this.verifyHost(roomId, userId);
     try {
-      return await PlaybackRepository.applyCommand(roomId, command, payload?.toString());
+      const state = await PlaybackRepository.applyCommand(roomId, command, payload?.toString(), expectedMediaId || '');
+      // Handle the case where the Lua script rejected due to stale command
+      if ((state as any).error === 'STALE_COMMAND') {
+        throw new AppError('Playback command is stale. Media has changed.', 409, 'STALE_COMMAND');
+      }
+      return state;
     } catch (err) {
+      if (err instanceof AppError) {
+        throw err;
+      }
       throw new AppError('Playback synchronization is temporarily unavailable.', 503, 'PLAYBACK_STATE_UNAVAILABLE');
     }
   }

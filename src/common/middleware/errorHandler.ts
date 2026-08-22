@@ -8,6 +8,9 @@ export function errorHandler(
   reply: FastifyReply
 ) {
   request.log.error({ err: error, reqId: request.id }, error.message);
+  if (process.env.NODE_ENV === 'test') {
+    console.error('[TEST ERROR]', error);
+  }
 
   if (error instanceof AppError) {
     return reply.status(error.statusCode).send({
